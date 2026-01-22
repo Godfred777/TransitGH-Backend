@@ -11,4 +11,9 @@ export class PrismaService extends PrismaClient{
         super({adapter});
     }
 
+    async onModuleInit() {
+        await this.$connect();
+        console.log('Connected to the database:', process.env.DATABASE_URL);
+    }
+
 }
