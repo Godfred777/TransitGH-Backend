@@ -1,0 +1,130 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  previewFeatures = ["postgresqlExtensions"]
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+  extensions = [postgis()]
+}
+
+// 1. USERS & ACTORS
+model User {
+  id        Int      @id @default(autoincrement())
+  phone     String   @unique
+  fullName  String
+  password  String   // Hashed
+  role      Role     @default(PASSENGER) // PASSENGER, DRIVER, MATE, ADMIN
+  
+  // Relationships
+  bookings  Booking[]
+  vehicles  Vehicle[] // If user is a Vehicle Owner
+  drivenTrips Trip[]  // If user is a Driver
+}
+
+enum Role {
+  PASSENGER
+  DRIVER
+  MATE
+  ADMIN
+}
+
+// 2. FLEET MANAGEMENT
+model Vehicle {
+  id           Int      @id @default(autoincrement())
+  plateNumber  String   @unique // e.g., "GS-1234-23"
+  capacity     Int      // Total seats (e.g., 15 for Sprinter)
+  model        String   // "Mercedes Sprinter"
+  ownerId      Int
+  owner        User     @relation(fields: [ownerId], references: [id])
+  trips        Trip[]
+}
+
+// 3. ROUTES & WAYPOINTS (The "Virtual Stops" Logic)
+model Route {
+  id          Int          @id @default(autoincrement())
+  name        String       // e.g., "Dodowa - Accra (Express)"
+  stops       RouteStop[]  // The ordered list of stops
+  trips       Trip[]
+}
+
+model Stop {
+  id          Int          @id @default(autoincrement())
+  name        String       // "Oyibi Junction", "Madina Oman FM"
+  latitude    Float
+  longitude   Float
+  
+  // Relationships
+  routeStops   RouteStop[]
+  pickupBookings  Booking[] @relation("PickupStop")
+  dropoffBookings Booking[] @relation("DropoffStop")
+}
+
+// This table defines the ORDER of stops for a specific route
+model RouteStop {
+  id          Int      @id @default(autoincrement())
+  routeId     Int
+  stopId      Int
+  sequence    Int      // 1 for Dodowa, 2 for Oyibi, 3 for Adenta...
+  estTimeFromStart Int // Minutes from start (helps calculate ETA)
+
+  route       Route    @relation(fields: [routeId], references: [id])
+  stop        Stop     @relation(fields: [stopId], references: [id])
+
+  @@unique([routeId, sequence]) // Ensure unique order per route
+}
+
+// 4. TRIPS & INVENTORY
+model Trip {
+  id          Int      @id @default(autoincrement())
+  routeId     Int
+  vehicleId   Int
+  driverId    Int
+  startTime   DateTime // e.g., 2024-05-20 06:00:00
+  status      TripStatus @default(SCHEDULED)
+  
+  route       Route    @relation(fields: [routeId], references: [id])
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id])
+  driver      User     @relation(fields: [driverId], references: [id])
+  bookings    Booking[]
+}
+
+enum TripStatus {
+  SCHEDULED
+  BOARDING
+  IN_TRANSIT
+  COMPLETED
+  CANCELLED
+}
+
+// 5. BOOKINGS (The "Segmented" Logic)
+model Booking {
+  id          Int      @id @default(autoincrement())
+  tripId      Int
+  userId      Int
+  seatNumber  Int      // 1 to 15
+  
+  // The "Segment": Where they get ON and OFF
+  pickupStopId  Int
+  dropoffStopId Int
+  
+  // Helper to store the sequence index for faster querying
+  pickupSeq     Int    // e.g., 2 (Oyibi)
+  dropoffSeq    Int    // e.g., 5 (Madina)
+
+  paymentStatus String // PAID, PENDING
+  ticketCode    String @unique // QR Code string
+
+  trip        Trip     @relation(fields: [tripId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+  pickupStop  Stop     @relation(fields: [pickupStopId], references: [id], name: "PickupStop")
+  dropoffStop Stop     @relation(fields: [dropoffStopId], references: [id], name: "DropoffStop")
+}
