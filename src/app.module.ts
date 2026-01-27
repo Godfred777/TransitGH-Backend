@@ -8,11 +8,12 @@ import {ConfigModule} from "@nestjs/config";
 import { BookingsModule } from './bookings/bookings.module';
 import { TransitModule } from './transit/transit.module';
 import { StopsModule } from './stops/stops.module';
+import { TrackingModule } from './tracking/tracking.module';
 
 @Module({
   imports: [UsersModule, AuthModule, ConfigModule.forRoot({
     isGlobal: true,
-  }), BookingsModule, TransitModule, StopsModule],
+  }), BookingsModule, TransitModule, StopsModule, TrackingModule],
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })
