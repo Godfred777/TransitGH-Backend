@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Stop } from 'generated/prisma/client';
 import { CreateRouteDto } from './dto/create-route.dto';
@@ -86,7 +86,7 @@ export class TransitService {
   async findRoutesBetweenStops(pickupStopId: number, dropoffStopId: number) {
     // We use raw SQL here because comparing two rows in the SAME table (RouteStop)
     // is very difficult/slow with standard Prisma syntax.
-    
+
     const validRoutes = await this.prisma.$queryRaw`
       SELECT 
         r.id as "routeId",
@@ -108,5 +108,32 @@ export class TransitService {
     `;
 
     return validRoutes;
+  }
+
+  async addStopToRoute(
+    routeId: number,
+    stopId: number,
+    sequence: number,
+    durationMins: number,
+  ) {
+    // Consideration: Check if this sequence number already exists to avoid collision
+    const existing = await this.prisma.routeStop.findFirst({
+      where: { routeId, sequence },
+    });
+
+    if (existing) {
+      throw new BadRequestException(
+        `Sequence ${sequence} is already taken on this route.`,
+      );
+    }
+
+    return this.prisma.routeStop.create({
+      data: {
+        routeId,
+        stopId,
+        sequence,
+        estTimeFromStart: durationMins,
+      },
+    });
   }
 }
