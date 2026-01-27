@@ -9,11 +9,12 @@ import { BookingsModule } from './bookings/bookings.module';
 import { TransitModule } from './transit/transit.module';
 import { StopsModule } from './stops/stops.module';
 import { TrackingModule } from './tracking/tracking.module';
+import { TripModule } from './trip/trip.module';
 
 @Module({
   imports: [UsersModule, AuthModule, ConfigModule.forRoot({
     isGlobal: true,
-  }), BookingsModule, TransitModule, StopsModule, TrackingModule],
+  }), BookingsModule, TransitModule, StopsModule, TrackingModule, TripModule],
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })

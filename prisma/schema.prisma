@@ -89,6 +89,7 @@ model Trip {
   vehicleId   Int
   driverId    Int
   startTime   DateTime // e.g., 2024-05-20 06:00:00
+  lastStopSequence Int    @default(0) // To track progress along the route
   status      TripStatus @default(SCHEDULED)
   
   route       Route    @relation(fields: [routeId], references: [id])
