@@ -7,11 +7,12 @@ import { AuthModule } from './auth/auth.module';
 import {ConfigModule} from "@nestjs/config";
 import { BookingsModule } from './bookings/bookings.module';
 import { TransitModule } from './transit/transit.module';
+import { StopsModule } from './stops/stops.module';
 
 @Module({
   imports: [UsersModule, AuthModule, ConfigModule.forRoot({
     isGlobal: true,
-  }), BookingsModule, TransitModule],
+  }), BookingsModule, TransitModule, StopsModule],
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })
