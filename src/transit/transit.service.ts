@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Stop } from 'generated/prisma/client';
-import { CreateRouteDto } from './create-route.dto';
+import { CreateRouteDto } from './dto/create-route.dto';
 
 // Define the NearestStopResult interface
 export interface NearestStopResult extends Stop {
