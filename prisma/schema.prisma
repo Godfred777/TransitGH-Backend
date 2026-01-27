@@ -123,6 +123,12 @@ model Booking {
   paymentStatus String // PAID, PENDING
   ticketCode    String @unique // QR Code string
 
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relationships
+
   trip        Trip     @relation(fields: [tripId], references: [id])
   user        User     @relation(fields: [userId], references: [id])
   pickupStop  Stop     @relation(fields: [pickupStopId], references: [id], name: "PickupStop")

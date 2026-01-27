@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from 'generated/prisma/client';
-
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class BookingsService {
@@ -148,5 +148,19 @@ export class BookingsService {
         });
     }
 
+    @Cron('*/1 * * * *') // Run every minute
+    async releaseExpiredHolds() {
+        await this.prisma.booking.updateMany({
+            where: {
+            paymentStatus: 'PENDING_PAYMENT',
+            createdAt: {
+                lte: new Date(Date.now() - 5 * 60 * 1000), // Older than 5 minutes
+                },
+            },
+            data: {
+                paymentStatus: 'CANCELLED',// or just delete the record
+            },
+        });
+    }
 
 }
