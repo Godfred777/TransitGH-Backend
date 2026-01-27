@@ -110,30 +110,50 @@ export class TransitService {
     return validRoutes;
   }
 
+
   async addStopToRoute(
-    routeId: number,
-    stopId: number,
-    sequence: number,
-    durationMins: number,
+    routeId: number, 
+    stopId: number, 
+    targetSequence: number, 
+    durationMins: number
   ) {
-    // Consideration: Check if this sequence number already exists to avoid collision
-    const existing = await this.prisma.routeStop.findFirst({
-      where: { routeId, sequence },
-    });
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Check if the sequence is already taken
+      const existingStop = await tx.routeStop.findFirst({
+        where: { routeId, sequence: targetSequence },
+      });
 
-    if (existing) {
-      throw new BadRequestException(
-        `Sequence ${sequence} is already taken on this route.`,
-      );
-    }
+      // 2. If taken, shift everyone else down (+1)
+      if (existingStop) {
+        // We update many records. Note: We sort desc to avoid unique constraint collisions 
+        // if your DB enforces unique(routeId, sequence).
+        // However, Prisma updateMany doesn't support ORDER BY inside the query directly 
+        // for simple SQL updates, but usually safe unless you have a strict UNIQUE constraint active immediately.
+        
+        // Strategy: Increment all sequences >= targetSequence
+        await tx.routeStop.updateMany({
+          where: {
+            routeId: routeId,
+            sequence: { gte: targetSequence }, // "Greater than or equal to"
+          },
+          data: {
+            sequence: { increment: 1 },
+          },
+        });
+      }
 
-    return this.prisma.routeStop.create({
-      data: {
-        routeId,
-        stopId,
-        sequence,
-        estTimeFromStart: durationMins,
-      },
+      // 3. Insert the new stop into the now-empty slot
+      const newRouteStop = await tx.routeStop.create({
+        data: {
+          routeId,
+          stopId,
+          sequence: targetSequence,
+          estTimeFromStart: durationMins,
+        },
+      });
+
+      return newRouteStop;
     });
   }
+
 }
