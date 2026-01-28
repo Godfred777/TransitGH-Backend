@@ -12,4 +12,8 @@ export class CreateVehicleDto {
 
     @IsNumber()
     ownerId: number;
+
+    @IsString()
+    color: string;
+
 }

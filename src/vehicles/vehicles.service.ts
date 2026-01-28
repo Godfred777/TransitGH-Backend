@@ -8,6 +8,7 @@ interface CreateVehicleInterface {
     capacity: number;
     model: string;
     ownerId: number;
+    color: string;
 }
 
 

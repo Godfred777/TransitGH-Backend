@@ -44,6 +44,9 @@ model Vehicle {
   capacity     Int      // Total seats (e.g., 15 for Sprinter)
   model        String   // "Mercedes Sprinter"
   ownerId      Int
+  color        String   // e.g., "White", "Blue"
+  
+  // Relationships
   owner        User     @relation(fields: [ownerId], references: [id])
   trips        Trip[]
 }
