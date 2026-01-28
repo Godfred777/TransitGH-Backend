@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { TripStatus } from 'generated/prisma/client';
 
 @Injectable()
 export class TripService {
@@ -7,6 +8,29 @@ export class TripService {
     constructor(
         private readonly prisma: PrismaService,
     ) { }
+
+    async startTripBroadcast(routeId: number, vehicleId: number, driverId: number) {
+    return this.prisma.trip.create({
+      data: {
+        routeId,
+        vehicleId,
+        driverId,
+        startTime: new Date(),
+        status: TripStatus.BOARDING, // Initial state
+      },
+      include: {
+        route: true,
+        vehicle: true,
+      }
+    });
+  }
+
+  async updateTripStatus(tripId: number, status: TripStatus) {
+    return this.prisma.trip.update({
+      where: { id: tripId },
+      data: { status },
+    });
+  }
 
     async getNextStopForTrip(tripId: number) {
     // 1. Get the trip and its current status
