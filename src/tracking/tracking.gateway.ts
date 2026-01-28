@@ -7,7 +7,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { TrackingService } from './tracking.service'; // Our Turf.js service
-//import { TripService } from 'src/trip/trip.service';
+import { TripService } from 'src/trip/trip.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @WebSocketGateway({
@@ -20,7 +20,7 @@ export class TrackingGateway {
 
   constructor(
     private trackingService: TrackingService,
-    //private tripService: TripService,
+    private tripService: TripService,
     private prisma: PrismaService,
   ) {}
 
@@ -42,7 +42,7 @@ export class TrackingGateway {
     const { tripId, lat, lng } = data;
 
     // 1. Get the stop we are expecting the bus to hit next
-    const nextStop = await this.trackingService.getNextStopForTrip(tripId);
+    const nextStop = await this.tripService.getNextStopForTrip(tripId);
 
     if (nextStop) {
       // 2. Use Turf.js to check if we are within 50 meters of that stop
@@ -61,11 +61,20 @@ export class TrackingGateway {
           data: { lastStopSequence: { increment: 1 } },
         });
 
-        // 4. Notify Sarah and other passengers
+        // 4. Check if this is the final stop
+        const trip = await this.tripService.getNextStopForTrip(tripId);
+        const isFinalStop = trip === null;
+
+        if (isFinalStop) {
+          await this.tripService.completeTrip(tripId);
+        }
+
+        // 5. Notify Sarah and other passengers
         this.server.to(`trip_${tripId}`).emit('announcement', {
           type: 'ARRIVAL',
           message: `Bus has arrived at ${nextStop.name}`,
           stopId: nextStop.id,
+          isFinalStop,
         });
       }
     }

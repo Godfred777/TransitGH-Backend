@@ -66,39 +66,5 @@ export class TrackingService {
 
     return turf.lineSlice(startPt, endPt, fullRouteLine);
   }
-  
 
-  async getNextStopForTrip(tripId: number) {
-    // 1. Get the trip and its current status
-    const trip = await this.prisma.trip.findUnique({
-      where: { id: tripId },
-      include: {
-        route: {
-          include: {
-            stops: {
-              orderBy: { sequence: 'asc' },
-              include: { stop: true }
-            }
-          }
-        }
-      }
-    });
-
-    if (!trip) throw new Error('Trip not found');
-
-    // 2. Determine which stop is "Next"
-    // If the trip just started (BOARDING), the next stop is the first stop (Seq 1).
-    if (trip.status === 'BOARDING') {
-      return trip.route.stops[0].stop;
-    }
-
-    /* 3. Logic: Find the first stop where the bus hasn't arrived yet.
-       We track this using a 'lastStopSequence' column in the Trip table.
-       You should update this sequence number whenever an "Arrival" is triggered.
-    */
-    const lastSequence = trip.lastStopSequence || 0;
-    const nextRouteStop = trip.route.stops.find(rs => rs.sequence > lastSequence);
-
-    return nextRouteStop ? nextRouteStop.stop : null;
-  }
 }
