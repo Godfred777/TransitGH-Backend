@@ -57,6 +57,8 @@ model Route {
   name        String       // e.g., "Dodowa - Accra (Express)"
   stops       RouteStop[]  // The ordered list of stops
   trips       Trip[]
+
+  fares Fare[]
 }
 
 model Stop {
@@ -69,6 +71,9 @@ model Stop {
   routeStops   RouteStop[]
   pickupBookings  Booking[] @relation("PickupStop")
   dropoffBookings Booking[] @relation("DropoffStop")
+
+  faresTo Fare[] @relation(name: "ToStop")
+  faresFrom Fare[] @relation(name: "FromStop")
 }
 
 // This table defines the ORDER of stops for a specific route
@@ -131,10 +136,29 @@ model Booking {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
+
+  price Float?   // Total fare for the booked segment
+  paymentReference String? @unique // e.g., from payment gateway like Paystack
+  paymentMethod  String?  @default("PAYSTACK")// e.g., "Card", "Mobile Money using Paystack, etc."
+  
   // Relationships
 
   trip        Trip     @relation(fields: [tripId], references: [id])
   user        User     @relation(fields: [userId], references: [id])
   pickupStop  Stop     @relation(fields: [pickupStopId], references: [id], name: "PickupStop")
   dropoffStop Stop     @relation(fields: [dropoffStopId], references: [id], name: "DropoffStop")
+}
+
+model Fare {
+  id          Int      @id @default(autoincrement())
+  routeId     Int
+  fromStopId  Int
+  toStopId    Int
+  price      Float    // e.g., 5.00 (in local currency)
+
+  route       Route    @relation(fields: [routeId], references: [id])
+  fromStop    Stop     @relation(fields: [fromStopId], references: [id], name: "FromStop")
+  toStop      Stop     @relation(fields: [toStopId], references: [id], name: "ToStop")
+
+  @@unique([routeId, fromStopId, toStopId]) // Unique fare per segment
 }
