@@ -3,9 +3,12 @@ import { BookingsService } from './bookings.service';
 import { BookingsController } from './bookings.controller';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ScheduleModule } from '@nestjs/schedule';
+import { PaystackService } from 'src/payment/paystack/paystack.service';
+import { FareService } from 'src/fares/fares.service';
+
 
 @Module({
-  providers: [BookingsService, PrismaService, ScheduleModule],
+  providers: [BookingsService, PrismaService, ScheduleModule, PaystackService, FareService],
   controllers: [BookingsController]
 })
 export class BookingsModule {}

@@ -40,6 +40,7 @@ async function main() {
       capacity: 15, // Sprinter
       model: 'Mercedes Sprinter',
       ownerId: samuel.id,
+      color: 'White',
     },
   });
 
@@ -97,6 +98,16 @@ async function main() {
       },
     });
   }
+
+  // Add to seed.ts
+  await prisma.fare.create({
+    data: {
+      routeId: route.id,
+      fromStopId: 2, // Oyibi
+      toStopId: 5, // Madina
+      price: 15.0,
+    },
+  });
 
   console.log('--- Seed Complete: Ready for Vibe Coding ---');
 }
