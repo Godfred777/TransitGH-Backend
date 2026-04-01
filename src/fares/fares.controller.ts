@@ -5,7 +5,7 @@ import { UpdateFareDto } from './dto/update-fares.dto';
 
 @Controller('fares')
 export class FareController {
-  constructor(private readonly fareService: FareService) {}
+  constructor(private fareService: FareService) {}
 
   // POST /fares
   @Post()
