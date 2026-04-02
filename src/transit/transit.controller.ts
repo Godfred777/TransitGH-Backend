@@ -20,4 +20,26 @@ export class TransitController {
   ) {
     return this.transitService.findRoutesBetweenStops(fromId, toId);
   }
+
+  // Passenger: Find nearest stops to their location
+  @Get('nearest-stops')
+  async nearestStops(
+    @Query('lat') lat: number,
+    @Query('long') long: number,
+    @Query('radius') radius: number = 1000, // default 1km
+  ) {
+    return this.transitService.findNearestStops(lat, long, radius);
+  }
+
+  //Admin/Driver: Add a stop to a route
+  @Post('add-stop-to-route')
+  async addStopToRoute(
+    @Query('routeId', ParseIntPipe) routeId: number,
+    @Query('stopId', ParseIntPipe) stopId: number,
+    @Query('sequence', ParseIntPipe) sequence: number,
+    @Query('durationFromStart', ParseIntPipe) durationFromStart: number,
+  ) {
+    return this.transitService.addStopToRoute(routeId, stopId, sequence, durationFromStart);
+  } 
+
 }
