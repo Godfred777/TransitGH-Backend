@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Stop } from 'generated/prisma/client';
 import { CreateRouteDto } from './dto/create-route.dto';
