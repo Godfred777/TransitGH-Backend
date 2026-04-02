@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { Stop } from 'generated/prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
+import { Stop } from '../../generated/prisma/client';
 import { CreateRouteDto } from './dto/create-route.dto';
 
 // Define the NearestStopResult interface
@@ -24,7 +24,7 @@ export class TransitService {
   ): Promise<NearestStopResult[]> {
     // We use Prisma's $queryRaw to execute direct SQL.
     // NOTE: In PostGIS, the order is always (Longitude, Latitude) -> (X, Y)
-    const stops = await this.prisma.$queryRaw<NearestStopResult[]>`
+    const stops = await (this.prisma as any).$queryRaw<NearestStopResult[]>`
       SELECT 
         id, 
         name, 
@@ -52,7 +52,7 @@ export class TransitService {
 
   async createRoute(dto: CreateRouteDto) {
     // We use a transaction to ensure we don't get a "half-created" route if something fails
-    return this.prisma.$transaction(async (tx) => {
+    return (this.prisma as any).$transaction(async (tx) => {
       // Step A: Create the Route parent
       const route = await tx.route.create({
         data: {
@@ -87,7 +87,7 @@ export class TransitService {
     // We use raw SQL here because comparing two rows in the SAME table (RouteStop)
     // is very difficult/slow with standard Prisma syntax.
 
-    const validRoutes = await this.prisma.$queryRaw`
+    const validRoutes = await (this.prisma as any).$queryRaw`
       SELECT 
         r.id as "routeId",
         r.name as "routeName",
@@ -117,7 +117,7 @@ export class TransitService {
     targetSequence: number, 
     durationMins: number
   ) {
-    return this.prisma.$transaction(async (tx) => {
+    return (this.prisma as any).$transaction(async (tx) => {
       // 1. Check if the sequence is already taken
       const existingStop = await tx.routeStop.findFirst({
         where: { routeId, sequence: targetSequence },
