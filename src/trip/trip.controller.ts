@@ -1,8 +1,8 @@
 import { Controller, Post, Body, Patch, Param, Get } from '@nestjs/common';
 import { TripService } from './trip.service';
-import { PrismaService } from 'src/prisma/prisma.service';
-import type { Trip } from 'generated/prisma/client';
-import { TripStatus } from 'generated/prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
+import type { Trip } from '../../generated/prisma/client';
+import { TripStatus } from '../../generated/prisma/client';
 
 @Controller('trips')
 export class TripController {
