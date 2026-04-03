@@ -32,7 +32,7 @@ export class TripService {
     });
   }
 
-    async getNextStopForTrip(tripId: number) {
+  async getNextStopForTrip(tripId: number) {
     // 1. Get the trip and its current status
     const trip = await this.prisma.trip.findUnique({
       where: { id: tripId },
